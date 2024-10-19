@@ -10,7 +10,7 @@ public static class InputUtils
     /// <summary>
     /// 获取移动方向向量
     /// </summary>
-    public static Vector3 GetMoveDirection()
+    public static Vector2 GetMoveDirection()
     {
         int moveX = 0;
         int moveY = 0;
@@ -19,7 +19,7 @@ public static class InputUtils
         if (Input.GetKey(KeyCode.A)) --moveX;
         if (Input.GetKey(KeyCode.D)) ++moveX;
 
-        return new Vector3(moveX, moveY, 0).normalized;
+        return new Vector2(moveX, moveY).normalized;
     }
 
     /// <summary>

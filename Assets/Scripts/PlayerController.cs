@@ -11,11 +11,13 @@ public class PlayerController : MonoBehaviour
     public float fireRate = 1f;
 
     private float fireRateCounter = 0f;
+    private Vector2 m_moveDirection;
+    private Rigidbody2D m_rigidbody2D;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        m_rigidbody2D = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -27,11 +29,8 @@ public class PlayerController : MonoBehaviour
 
     private void SolveMoveInput()
     {
-        var moveDirection = InputUtils.GetMoveDirection();
-        if (moveDirection != Vector3.zero)
-        {
-            transform.Translate(InputUtils.GetMoveDirection() * speed * Time.deltaTime);
-        }
+        m_moveDirection = InputUtils.GetMoveDirection();
+        m_rigidbody2D.velocity = m_moveDirection * speed;
     }
 
     private void SolveAttackInput()

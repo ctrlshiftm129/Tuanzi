@@ -8,9 +8,8 @@ using UnityEngine;
 /// </summary>
 public class BulletManager : Manager
 {
-    public const int MAX_BULLET_NUM = 1000;
     public GameObject bulletPrefab;
-
+    private readonly Dictionary<GameObject, BulletBase> m_activeGo2Bullet = new Dictionary<GameObject, BulletBase>();
     private readonly HashSet<BulletBase> m_activeBullets = new HashSet<BulletBase>();
     private readonly List<BulletBase> m_bulletUpdateTemp = new List<BulletBase>();
 
@@ -19,27 +18,16 @@ public class BulletManager : Manager
         Register2Locator();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        UpdateAllActiveBullets();
-    }
-
     public void PlayerShoot(Vector3 pos, Vector3 direction, float speed)
     {
         var bullet = new StraightBullet(BulletOwner.Player, direction, speed);
         bullet = CreateNewBulletGameObject(bullet);
         bullet.gameObject.transform.position = pos;
         m_activeBullets.Add(bullet);
+        m_activeGo2Bullet.Add(bullet.gameObject, bullet);
     }
 
-    private void UpdateAllActiveBullets()
+    public void UpdateAllActiveBullets()
     {
         foreach (var bullet in m_activeBullets)
         {
@@ -54,9 +42,15 @@ public class BulletManager : Manager
         {
             RecycleBullet(bullet);
             m_activeBullets.Remove(bullet);
+            m_activeGo2Bullet.Remove(bullet.gameObject);
             bullet.gameObject.SetActive(false);
         }
         m_bulletUpdateTemp.Clear();
+    }
+
+    public bool IsBullet(GameObject gameObject)
+    {
+        return m_activeGo2Bullet.ContainsKey(gameObject);
     }
 
     private bool IsBulletValid(BulletBase bullet)
@@ -68,7 +62,7 @@ public class BulletManager : Manager
 
     #region Bullet Pool
 
-    private readonly GameObjectPool m_gameObjectPool = new GameObjectPool(2000);
+    private readonly GameObjectPool m_gameObjectPool = new GameObjectPool(1000);
 
     private T CreateNewBulletGameObject<T>(T bullet) where T : BulletBase
     {
