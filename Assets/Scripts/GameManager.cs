@@ -46,17 +46,17 @@ public class GameManager : MonoBehaviour
                 var randPos = Random.Range(2.5f, 16.5f);
                 m_enemyManager.AddEnemy(new Vector3(randPos, 2.5f, 0));
             }
-            else if(random == 1)
+            else if (random == 1)
             {
                 var randPos = Random.Range(2.5f, 16.5f);
                 m_enemyManager.AddEnemy(new Vector3(17.5f, randPos, 0));
             }
-            else if(random == 2)
+            else if (random == 2)
             {
                 var randPos = Random.Range(3.5f, 17.5f);
                 m_enemyManager.AddEnemy(new Vector3(randPos, 17.5f, 0));
             }
-            else if(random == 3)
+            else if (random == 3)
             {
                 var randPos = Random.Range(3.5f, 17.5f);
                 m_enemyManager.AddEnemy(new Vector3(2.5f, randPos, 0));

@@ -11,12 +11,18 @@ public enum BulletOwner
 /// <summary>
 /// 子弹基类，按逻辑分类
 /// </summary>
-public abstract class BulletBase
+public abstract class BulletObjectBase
 {
     public BulletOwner owner;
     public GameObject gameObject;
+    public GameObject bulletPrefab;
+    public Vector3 originalPos;
+    public Vector3 direction;
+    public float range;
+    public float speed;
+    public bool penetrate;
 
-    public BulletBase(BulletOwner owner)
+    public BulletObjectBase(BulletOwner owner)
     {
         this.owner = owner;
     }

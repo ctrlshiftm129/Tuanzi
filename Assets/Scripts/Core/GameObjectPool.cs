@@ -11,42 +11,61 @@ public class GameObjectPool
 {
     //超过对象池大小以后正常卸载
     public int poolSize;
-    private readonly HashSet<GameObject> m_checkSet = new HashSet<GameObject>();
-    private readonly Stack<GameObject> m_gameObjects = new Stack<GameObject>();
+    private readonly Dictionary<GameObject, HashSet<GameObject>> m_checkSets = new Dictionary<GameObject, HashSet<GameObject>>();
+    private readonly Dictionary<GameObject, Stack<GameObject>> m_pools = new Dictionary<GameObject, Stack<GameObject>>();
 
     public GameObjectPool(int poolSize)
     {
         this.poolSize = poolSize;
     }
 
-    public GameObject TryGetGameObject()
+    public GameObject TryGetGameObject(GameObject prefab)
     {
+        var (checkSet, pool) = GetOrNewPrefabPool(prefab);
+
         GameObject gameObject = null;
-        if (m_gameObjects.Count > 0)
+        if (pool.Count > 0)
         {
-            gameObject = m_gameObjects.Pop();
-            m_checkSet.Remove(gameObject);
+            gameObject = pool.Pop();
+            checkSet.Remove(gameObject);
         }
 
         return gameObject;
     }
 
-    public void RecycleGameObject(GameObject gameObject)
+    public void RecycleGameObject(GameObject prefab, GameObject gameObject)
     {
-        if (m_checkSet.Contains(gameObject))
+        var (checkSet, pool) = GetOrNewPrefabPool(prefab);
+
+        if (checkSet.Contains(gameObject))
         {
             Debug.LogError("该对象已经在对象池了，不要重复回收");
             return;
         }
 
-        if (m_gameObjects.Count < poolSize)
+        if (pool.Count < poolSize)
         {
-            m_checkSet.Add(gameObject);
-            m_gameObjects.Push(gameObject);
+            checkSet.Add(gameObject);
+            pool.Push(gameObject);
         }
         else
         {
             Object.Destroy(gameObject);
         }
+    }
+
+    private (HashSet<GameObject>, Stack<GameObject>) GetOrNewPrefabPool(GameObject prefab)
+    {
+        if (!m_checkSets.TryGetValue(prefab, out var checkSet))
+        {
+            m_checkSets[prefab] = checkSet = new HashSet<GameObject>();
+        }
+
+        if (!m_pools.TryGetValue(prefab, out var pool))
+        {
+            m_pools[prefab] = pool = new Stack<GameObject>();
+        }
+
+        return (checkSet, pool);
     }
 }

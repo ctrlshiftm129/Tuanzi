@@ -2,24 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StraightBullet : BulletBase
+public class StraightBullet : BulletObjectBase
 {
-    public Vector3 direction;
-    public float speed;
-
-    public StraightBullet(BulletOwner owner, Vector2 direction, float speed) : base(owner)
-    {
-        this.direction = direction;
-        this.speed = speed;
-    }
-
-    public override void Init()
+    public StraightBullet(BulletOwner owner) : base(owner)
     {
         
     }
 
+    public override void Init()
+    {
+        // 计算当前朝向和目标朝向之间的旋转角度
+        float angle = Vector3.SignedAngle(Vector3.right, direction, Vector3.forward);
+        gameObject.transform.Rotate(Vector3.forward, angle);
+    }
+
     public override void Update()
     {
-        gameObject.transform.Translate(direction * speed * Time.deltaTime);
+        var position = gameObject.transform.position;
+        position += direction * speed * Time.deltaTime;
+        gameObject.transform.position = position;
     }
 }
