@@ -56,13 +56,30 @@ public class EnemyManager : Manager
         return m_activeGo2Enemy.ContainsKey(gameObject);
     }
 
+    public bool FindClosestEnemyByPos(Vector3 position, out float distance, out GameObject closestEnemy)
+    {
+        distance = 9999f;
+        closestEnemy = null;
+        foreach (var enemy in m_activeEnemies)
+        {
+            var currentDis = Vector3.Distance(position, enemy.gameObject.transform.position);
+            if (currentDis < distance)
+            {
+                distance = currentDis;
+                closestEnemy = enemy.gameObject;
+            }
+        }
+
+        return !(closestEnemy is null);
+    }
+
     #region Enemy Pool
 
     private readonly GameObjectPool m_gameObjectPool = new GameObjectPool(1000);
 
     private T CreateEnemyGameObject<T>(T enemy) where T : EnemyBase
     {
-        var enemyGameObject = m_gameObjectPool.TryGetGameObject();
+        var enemyGameObject = m_gameObjectPool.TryGetGameObject(enemyPrefab);
         if (enemyGameObject == null)
         {
             enemyGameObject = Instantiate(enemyPrefab);
@@ -83,7 +100,7 @@ public class EnemyManager : Manager
         }
 
         enemy.gameObject.SetActive(false);
-        m_gameObjectPool.RecycleGameObject(enemy.gameObject);
+        m_gameObjectPool.RecycleGameObject(enemyPrefab, enemy.gameObject);
     }
 
     #endregion

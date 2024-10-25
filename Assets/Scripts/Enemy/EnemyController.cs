@@ -11,5 +11,6 @@ public class EnemyController : MonoBehaviour
 
         var enemyManager = ManagerLocator.Instance.Get<EnemyManager>();
         enemyManager.SetEnemyDead(gameObject);
+        bulletManager.SolveBulletHit(collision.gameObject);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -25,6 +26,7 @@ public static class InputUtils
     /// <summary>
     /// 获取攻击方向向量
     /// </summary>
+    [Obsolete("改为自动攻击，下个版本删除")]
     public static Vector3 GetAttackDirection()
     {
         int attackX = 0;
