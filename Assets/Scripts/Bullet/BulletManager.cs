@@ -3,43 +3,71 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ×Óµ¯¹ÜÀíÆ÷
-/// Ê¹ÓÃ¶ÔÏó³Ø¹ÜÀí³¡¾°ÄÚËùÓĞ×Óµ¯¶ÔÏóµÄ´´½¨Ïú»ÙºÍ¸üĞÂ
+/// ç®¡ç†æ‰€æœ‰å­å¼¹
 /// </summary>
 public class BulletManager : Manager
 {
-    private readonly Dictionary<GameObject, BulletObjectBase> m_activeGo2Bullet = new Dictionary<GameObject, BulletObjectBase>();
-    private readonly HashSet<BulletObjectBase> m_activeBullets = new HashSet<BulletObjectBase>();
-    private readonly List<BulletObjectBase> m_bulletUpdateTemp = new List<BulletObjectBase>();
+    public Vector2 rangeX;
+    public Vector2 rangeY;
+
+    private readonly Dictionary<GameObject, Bullet> m_activeGo2Bullet = new();
+    private readonly HashSet<Bullet> m_activeBullets = new();
+    private readonly List<Bullet> m_bulletUpdateTemp = new();
 
     private void Awake()
     {
         Register2Locator();
     }
 
-    public void PlayerShoot(Vector3 pos, Vector3 direction, float range, BulletConfig bulletConfig)
+    #region Create
+
+    public void PlayerShoot(PlayerController player, Vector3 direction, BulletConfig bulletConfig)
     {
-        var bullet = new StraightBullet(BulletOwner.Player)
+        var bullet = new Bullet(BulletOwner.Player)
         {
             bulletPrefab = bulletConfig.bulletPrefab,
-            originalPos = pos,
+            originalPos = player.transform.position,
             direction = direction,
-            range = range,
+            range = player.WeaponRange,
             speed = bulletConfig.speed,
+            damage = player.WeaponDamage,
             penetrate = bulletConfig.penetrate
         };
-        bullet = CreateNewBulletGameObject(pos, bullet);
+        CreateNewBulletGameObject(bullet);
 
         m_activeBullets.Add(bullet);
         m_activeGo2Bullet.Add(bullet.gameObject, bullet);
     }
+    
+    #endregion
+
+    #region Check
+
+    public Bullet GetBullet(GameObject go)
+    {
+        return m_activeGo2Bullet.GetValueOrDefault(go, null);
+    }
+    
+    private bool IsBulletInRange(Bullet bullet)
+    {
+        var bulletPos = bullet.gameObject.transform.position;
+        var moveDis = Vector3.Distance(bulletPos, bullet.originalPos);
+        if (moveDis > bullet.range) return false;
+
+        return bulletPos.x > rangeX.x && bulletPos.x < rangeX.y
+                                      && bulletPos.y > rangeY.x && bulletPos.y < rangeY.y;
+    }
+
+    #endregion
+
+    #region Update
 
     public void UpdateAllActiveBullets()
     {
         foreach (var bullet in m_activeBullets)
         {
-            bullet.Update();
-            if (!IsBulletValid(bullet))
+            bullet.FixedUpdate();
+            if (!IsBulletInRange(bullet))
             {
                 m_bulletUpdateTemp.Add(bullet);
             }
@@ -47,51 +75,39 @@ public class BulletManager : Manager
 
         foreach (var bullet in m_bulletUpdateTemp)
         {
-            RecycleBullet(bullet);
-            m_activeBullets.Remove(bullet);
-            m_activeGo2Bullet.Remove(bullet.gameObject);
-            bullet.gameObject.SetActive(false);
+            KillBullet(bullet);
         }
         m_bulletUpdateTemp.Clear();
     }
 
-    public void SolveBulletHit(GameObject gameObject)
+    public void SolveBulletHit(GameObject go)
     {
-        if (m_activeGo2Bullet.TryGetValue(gameObject, out var bullet))
+        if (m_activeGo2Bullet.TryGetValue(go, out var bullet))
         {
-            // ÔÊĞí´©Í¸Ê±²»Ïú»Ù
+            // å­å¼¹ç©¿é€
             if (bullet.penetrate) return;
-            RecycleBullet(bullet);
-            m_activeGo2Bullet.Remove(gameObject);
-            m_activeBullets.Remove(bullet);
+            KillBullet(bullet);
         }
     }
 
-    public bool IsBullet(GameObject gameObject)
+    private void KillBullet(Bullet bullet)
     {
-        return m_activeGo2Bullet.ContainsKey(gameObject);
+        RecycleBullet(bullet);
+        m_activeGo2Bullet.Remove(bullet.gameObject);
+        m_activeBullets.Remove(bullet);
     }
 
-    private bool IsBulletValid(BulletObjectBase bullet)
-    {
-        var bulletPos = bullet.gameObject.transform.position;
-        var moveDis = Vector3.Distance(bulletPos, bullet.originalPos);
-        if (moveDis > bullet.range) return false;
-
-        return bulletPos.x > -1 && bulletPos.x < 21
-            && bulletPos.y > -1 && bulletPos.y < 21;
-    }
+    #endregion
 
     #region Bullet Pool
 
-    private Dictionary<GameObject, Transform> m_bulletCacheRoot = new Dictionary<GameObject, Transform>();
-    private readonly GameObjectPool m_gameObjectPool = new GameObjectPool(1000);
+    private readonly Dictionary<GameObject, Transform> m_bulletCacheRoot = new();
+    private readonly GameObjectPool m_gameObjectPool = new(1000);
 
-    private T CreateNewBulletGameObject<T>(Vector3 pos, T bullet) where T : BulletObjectBase
+    private void CreateNewBulletGameObject(Bullet bullet)
     {
         var prefab = bullet.bulletPrefab;
         var bulletGameObject = m_gameObjectPool.TryGetGameObject(prefab);
-        // ³Ø×ÓÀïÃ»ÓĞ»º´æµÄÁË
         if (bulletGameObject == null)
         {
             bulletGameObject = Instantiate(prefab);
@@ -100,22 +116,21 @@ public class BulletManager : Manager
         bullet.gameObject = bulletGameObject;
         var bulletTransform = bullet.gameObject.transform;
         bulletTransform.SetParent(GetOrNewBulletCacheRoot(prefab));
-        bulletTransform.position = pos;
+        bulletTransform.position = bullet.originalPos;
         bulletTransform.rotation = Quaternion.identity;
 
         bullet.Init();
-        bulletGameObject.SetActive(true);
-        return bullet;
+        bullet.gameObject.SetActive(true);
     }
 
-    private void RecycleBullet(BulletObjectBase bullet)
+    private void RecycleBullet(Bullet bullet)
     {
         if (!m_activeBullets.Contains(bullet))
         {
-            Debug.LogError("Õâ¸ö¶ÔÏó²»ÊÇ×Óµ¯¹ÜÀíÆ÷¹ÜÀíµÄ¶ÔÏó");
+            Debug.LogError("è¿™ä¸ªå¯¹è±¡ä¸æ˜¯å­å¼¹ç®¡ç†å™¨ç®¡ç†çš„å¯¹è±¡");
             return;
         }
-
+        
         bullet.gameObject.SetActive(false);
         m_gameObjectPool.RecycleGameObject(bullet.bulletPrefab, bullet.gameObject);
     }
