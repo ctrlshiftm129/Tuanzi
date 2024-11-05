@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// GameObject¶ÔÏó³Ø
-/// ¶ÔÏó³ØÈ¡³öµÄGameObject²»»á´¥·¢Awake£¬³õÊ¼»¯ÓÃEnable
-/// Ò»¶¨ĞèÒªAwakeµÄ²»ÒªÓÃÕâ¸ö
+/// GameObjectå¯¹è±¡æ± 
+/// å¯¹è±¡æ± å–å‡ºçš„GameObjectä¸ä¼šè§¦å‘Awakeï¼Œåˆå§‹åŒ–ç”¨Enable
+/// ä¸€å®šéœ€è¦Awakeçš„ä¸è¦ç”¨è¿™ä¸ª
 /// </summary>
 public class GameObjectPool
 {
-    //³¬¹ı¶ÔÏó³Ø´óĞ¡ÒÔºóÕı³£Ğ¶ÔØ
+    //è¶…è¿‡å¯¹è±¡æ± å¤§å°ä»¥åæ­£å¸¸å¸è½½
     public int poolSize;
-    private readonly Dictionary<GameObject, HashSet<GameObject>> m_checkSets = new Dictionary<GameObject, HashSet<GameObject>>();
-    private readonly Dictionary<GameObject, Stack<GameObject>> m_pools = new Dictionary<GameObject, Stack<GameObject>>();
+    private readonly Dictionary<GameObject, HashSet<GameObject>> m_checkSets = new();
+    private readonly Dictionary<GameObject, Stack<GameObject>> m_pools = new();
 
     public GameObjectPool(int poolSize)
     {
@@ -39,7 +39,7 @@ public class GameObjectPool
 
         if (checkSet.Contains(gameObject))
         {
-            Debug.LogError("¸Ã¶ÔÏóÒÑ¾­ÔÚ¶ÔÏó³ØÁË£¬²»ÒªÖØ¸´»ØÊÕ");
+            Debug.LogError("è¯¥å¯¹è±¡å·²ç»åœ¨å¯¹è±¡æ± äº†ï¼Œä¸è¦é‡å¤å›æ”¶");
             return;
         }
 

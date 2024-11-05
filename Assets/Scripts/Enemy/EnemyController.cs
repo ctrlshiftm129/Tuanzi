@@ -1,16 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
+    private BulletManager m_bulletManager;
+
+    private BulletManager BulletManager
+    {
+        get
+        {
+            if (m_bulletManager == null)
+            {
+                m_bulletManager = ManagerLocator.Instance.Get<BulletManager>();
+            }
+            return m_bulletManager;
+        }
+    }
+    
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        var bulletManager = ManagerLocator.Instance.Get<BulletManager>();
-        if (!bulletManager.IsBullet(collision.gameObject)) return;
+        var collisionGo = collision.gameObject;
+        var bullet = BulletManager.GetBullet(collisionGo);
+        if (bullet != null)
+        {
+            SolveBulletHit(bullet, collisionGo);
+        }
+    }
 
+    private void SolveBulletHit(Bullet bullet, GameObject bulletGo)
+    {
         var enemyManager = ManagerLocator.Instance.Get<EnemyManager>();
-        enemyManager.SetEnemyDead(gameObject);
-        bulletManager.SolveBulletHit(collision.gameObject);
+        enemyManager.SetDamageToEnemy(gameObject, bullet.damage);
+        BulletManager.SolveBulletHit(bulletGo);
     }
 }

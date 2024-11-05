@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public class GameProperty
 {
-    public float attack;
+    public int attack;
     public float damageRate;
     public float criticalHitRate;
     public float fireRate;

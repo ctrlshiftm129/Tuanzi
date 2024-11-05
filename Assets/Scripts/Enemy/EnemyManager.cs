@@ -1,61 +1,54 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class EnemyManager : Manager
 {
     public GameObject enemyPrefab;
-    private readonly Dictionary<GameObject, EnemyBase> m_activeGo2Enemy = new Dictionary<GameObject, EnemyBase>();
-    private readonly HashSet<EnemyBase> m_activeEnemies = new HashSet<EnemyBase>();
-    private readonly List<EnemyBase> m_enemyUpdateTemp = new List<EnemyBase>();
+    public GameObject warningPrefab;
+    
+    private readonly Dictionary<GameObject, Enemy> m_activeGo2Enemy = new();
+    private readonly HashSet<Enemy> m_activeEnemies = new();
+    private readonly List<Enemy> m_enemyUpdateTemp = new();
 
     private void Awake()
     {
+        InitPoolRoot();
         Register2Locator();
     }
 
-    public void AddEnemy(Vector3 worldPos)
+    #region Create
+
+    public void AddEnemy(EnemyConfig config, Vector3 worldPos)
     {
-        var enemy = new NormalEnemy();
-        enemy = CreateEnemyGameObject(enemy);
-        enemy.gameObject.transform.position = worldPos;
-        enemy.isAlive = true;
-        m_activeEnemies.Add(enemy);
-        m_activeGo2Enemy.Add(enemy.gameObject, enemy);
+        var enemy = new Enemy(config);
+        CreateEnemyGameObject(worldPos, enemy);
     }
 
-    public void SetEnemyDead(GameObject enemyGo)
+    public void AddEnemyDelay(EnemyConfig config, Vector3 worldPos, float delay = 2)
     {
-        if (!m_activeGo2Enemy.TryGetValue(enemyGo, out var enemy)) return;
-        enemy.isAlive = false;
+        var warningGo = CreateWarningGameObject(worldPos);
+        StartCoroutine(AddEnemyDelayCore(warningGo, config, worldPos, delay));
     }
 
-    public void UpdateAllActiveEnemy(Vector3 playerPos)
+    private IEnumerator AddEnemyDelayCore(GameObject warningGo, EnemyConfig config, Vector3 worldPos, float delay)
     {
-        foreach (var enemy in m_activeEnemies)
-        {
-            if (!enemy.isAlive)
-            {
-                m_enemyUpdateTemp.Add(enemy);
-            }
-            enemy.Update(playerPos);
-        }
-
-        foreach (var enemy in m_enemyUpdateTemp)
-        {
-            RecycleEnemyGameObject(enemy);
-            m_activeEnemies.Remove(enemy);
-            m_activeGo2Enemy.Remove(enemy.gameObject);
-            enemy.gameObject.SetActive(false);
-        }
-        m_enemyUpdateTemp.Clear();
+        yield return new WaitForSeconds(delay); // Á≠âÂæÖ‰∏ÄÊÆµÊó∂Èó¥
+        RecycleWarningGameObject(warningGo);
+        AddEnemy(config, worldPos);
     }
 
-    public bool IsActiveEnemy(GameObject gameObject)
-    {
-        return m_activeGo2Enemy.ContainsKey(gameObject);
-    }
+    #endregion
 
+    #region Check
+
+    public bool IsActiveEnemy(GameObject go)
+    {
+        return m_activeGo2Enemy.ContainsKey(go);
+    }
+    
     public bool FindClosestEnemyByPos(Vector3 position, out float distance, out GameObject closestEnemy)
     {
         distance = 9999f;
@@ -70,14 +63,55 @@ public class EnemyManager : Manager
             }
         }
 
-        return !(closestEnemy is null);
+        return closestEnemy is not null;
     }
 
+    #endregion
+
+    #region Update
+
+    public void SetDamageToEnemy(GameObject enemyGo, int damage)
+    {
+        if (!m_activeGo2Enemy.TryGetValue(enemyGo, out var enemy)) return;
+        enemy.hp -= damage;
+    }
+    
+    public void UpdateAllActiveEnemy(Vector3 playerPos)
+    {
+        foreach (var enemy in m_activeEnemies)
+        {
+            enemy.Update(playerPos);
+            if (!enemy.isAlive)
+            {
+                m_enemyUpdateTemp.Add(enemy);
+            }
+        }
+
+        foreach (var enemy in m_enemyUpdateTemp)
+        {
+            RecycleEnemyGameObject(enemy);
+        }
+        m_enemyUpdateTemp.Clear();
+    }
+
+    #endregion
+    
     #region Enemy Pool
 
-    private readonly GameObjectPool m_gameObjectPool = new GameObjectPool(1000);
+    private readonly GameObjectPool m_gameObjectPool = new(1000);
+    private GameObject m_enemyRoot;
+    private GameObject m_warningRoot;
 
-    private T CreateEnemyGameObject<T>(T enemy) where T : EnemyBase
+    private void InitPoolRoot()
+    {
+        m_enemyRoot = new GameObject("EnemyRoot");
+        m_warningRoot = new GameObject("WarningRoot");
+        
+        m_enemyRoot.transform.SetParent(transform);
+        m_warningRoot.transform.SetParent(transform);
+    }
+
+    private void CreateEnemyGameObject(Vector3 pos, Enemy enemy)
     {
         var enemyGameObject = m_gameObjectPool.TryGetGameObject(enemyPrefab);
         if (enemyGameObject == null)
@@ -85,22 +119,48 @@ public class EnemyManager : Manager
             enemyGameObject = Instantiate(enemyPrefab);
         }
         enemy.gameObject = enemyGameObject;
-        enemy.gameObject.transform.SetParent(transform);
+        enemy.gameObject.transform.SetParent(m_enemyRoot.transform);
+        enemy.gameObject.transform.position = pos;
+        
+        m_activeEnemies.Add(enemy);
+        m_activeGo2Enemy.Add(enemy.gameObject, enemy);
+        
         enemy.Init();
-        enemyGameObject.SetActive(true);
-        return enemy;
+        enemy.gameObject.SetActive(true);
     }
 
-    private void RecycleEnemyGameObject(EnemyBase enemy)
+    private void RecycleEnemyGameObject(Enemy enemy)
     {
         if (!m_activeEnemies.Contains(enemy))
         {
-            Debug.LogError("’‚∏ˆ∂‘œÛ≤ª «π÷ŒÔπ‹¿Ì∆˜π‹¿Ìµƒ∂‘œÛ");
+            Debug.LogError("Ëøô‰∏™ÂØπË±°‰∏çÊòØÊÄ™Áâ©ÁÆ°ÁêÜÂô®ÁÆ°ÁêÜÁöÑÂØπË±°");
             return;
         }
-
+        
         enemy.gameObject.SetActive(false);
+        m_activeEnemies.Remove(enemy);
+        m_activeGo2Enemy.Remove(enemy.gameObject);
+        
         m_gameObjectPool.RecycleGameObject(enemyPrefab, enemy.gameObject);
+    }
+
+    private GameObject CreateWarningGameObject(Vector3 pos)
+    {
+        var warningGo = m_gameObjectPool.TryGetGameObject(warningPrefab);
+        if (warningGo == null)
+        {
+            warningGo = Instantiate(warningPrefab);
+        }
+        warningGo.transform.SetParent(m_warningRoot.transform);
+        warningGo.transform.position = pos;
+        warningGo.SetActive(true);
+        return warningGo;
+    }
+
+    private void RecycleWarningGameObject(GameObject warningGo)
+    {
+        warningGo.SetActive(false);
+        m_gameObjectPool.RecycleGameObject(warningPrefab, warningGo);
     }
 
     #endregion

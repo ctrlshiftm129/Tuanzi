@@ -13,7 +13,7 @@ public class BulletConfig : ScriptableObject
     public bool penetrate;
 
 #if UNITY_EDITOR
-    [MenuItem("工具/创建子弹配置")]
+    [MenuItem("宸ュ叿/鍒涘缓瀛愬脊閰嶇疆")]
     public static void CreateNewBulletAsset()
     {
         var path = "Assets/Configs/Bullets/NewBullet.asset";

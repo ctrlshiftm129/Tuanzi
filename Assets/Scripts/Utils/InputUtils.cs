@@ -22,20 +22,4 @@ public static class InputUtils
 
         return new Vector2(moveX, moveY).normalized;
     }
-
-    /// <summary>
-    /// 获取攻击方向向量
-    /// </summary>
-    [Obsolete("改为自动攻击，下个版本删除")]
-    public static Vector3 GetAttackDirection()
-    {
-        int attackX = 0;
-        int attackY = 0;
-        if (Input.GetKey(KeyCode.UpArrow)) ++attackY;
-        if (Input.GetKey(KeyCode.DownArrow)) --attackY;
-        if (Input.GetKey(KeyCode.LeftArrow)) --attackX;
-        if (Input.GetKey(KeyCode.RightArrow)) ++attackX;
-
-        return new Vector3(attackX, attackY, 0).normalized;
-    }
 }
