@@ -44,6 +44,11 @@ public class EnemyManager : Manager
 
     #region Check
 
+    public bool HasActiveEnemy()
+    {
+        return m_activeGo2Enemy.Count > 0;
+    }
+    
     public bool IsActiveEnemy(GameObject go)
     {
         return m_activeGo2Enemy.ContainsKey(go);
