@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,14 +13,22 @@ public class PlayerController : MonoBehaviour
     public WeaponConfig weapon;
 
     private Rigidbody2D m_rigidbody2D;
+    private UIManager m_uiManager;
     
-    public float Speed => Mathf.Max(basicProp.speed + additionalProp.speed + weapon.weaponProp.speed, 0);
-
-    public float WeaponRange => Mathf.Max(basicProp.range + additionalProp.range + weapon.weaponProp.range, 10);
-
-    public float WeaponFireRate => Mathf.Clamp(basicProp.fireRate + additionalProp.fireRate + weapon.weaponProp.fireRate, 0.1f, 10f);
-
-    public int WeaponDamage => Mathf.Max(basicProp.attack + additionalProp.attack + weapon.weaponProp.attack, 0);
+    public int WeaponDamage => 
+        Mathf.Max(basicProp.attack + additionalProp.attack + weapon.weaponProp.attack, 1);
+    public float DamageRate => 
+        Mathf.Max(basicProp.damageRate + additionalProp.damageRate + weapon.weaponProp.damageRate, 0);
+    public float CriticalHitRate => 
+        Mathf.Max(basicProp.criticalHitRate + additionalProp.criticalHitRate + weapon.weaponProp.criticalHitRate, 0);
+    public float WeaponFireRate => 
+        Mathf.Clamp(basicProp.fireRate + additionalProp.fireRate + weapon.weaponProp.fireRate, 0.1f, 10f);
+    public float WeaponRange => 
+        Mathf.Max(basicProp.range + additionalProp.range + weapon.weaponProp.range, 10);
+    public float Speed => 
+        Mathf.Max(basicProp.speed + additionalProp.speed + weapon.weaponProp.speed, 0);
+    public float Lucky => 
+        Mathf.Max(basicProp.lucky + additionalProp.lucky + weapon.weaponProp.lucky, 0);
     
     // Start is called before the first frame update
     void Awake()
@@ -30,16 +36,31 @@ public class PlayerController : MonoBehaviour
         m_rigidbody2D = GetComponent<Rigidbody2D>();
     }
 
+    private void Start()
+    {
+        m_uiManager = ManagerLocator.Instance.Get<UIManager>();
+    }
+
     // Update is called once per frame
     void Update()
     {
         SolveMoveInput();
+        UpdatePropertyUI();
     }
 
     private void FixedUpdate()
     {
         UpdateMove();
     }
+
+    #region Update UI
+
+    private void UpdatePropertyUI()
+    {
+        m_uiManager.ShowPlayerProperty(this);
+    }
+
+    #endregion
 
     #region Move Logic
 

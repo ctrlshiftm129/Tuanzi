@@ -14,7 +14,7 @@ public class WeaponConfig : ScriptableObject
     public BulletConfig bulletConfig;
 
 #if UNITY_EDITOR
-    [MenuItem("工具/创建武器配置")]
+    [MenuItem("宸ュ叿/鍒涘缓姝﹀櫒閰嶇疆")]
     public static void CreateNewWeaponAsset()
     {
         var path = "Assets/Configs/Weapons/NewWeapon.asset";
@@ -22,7 +22,7 @@ public class WeaponConfig : ScriptableObject
         AssetDatabase.CreateAsset(newAsset, path);
     }
 
-    [MenuItem("工具/测试")]
+    [MenuItem("宸ュ叿/娴嬭瘯")]
     public static void AAA()
     {
         Vector3 a = new Vector3(10, 10, 0);
@@ -38,7 +38,7 @@ public class WeaponConfig : ScriptableObject
         gameObject.transform.Rotate(Vector3.forward, angle2);
     }
 
-    [MenuItem("工具/测试2")]
+    [MenuItem("宸ュ叿/娴嬭瘯2")]
     public static void AAAA()
     {
         var gameObject = Selection.activeGameObject;
