@@ -16,7 +16,7 @@ public class UIManager : Manager
 
     private void Start()
     {
-       
+       //
     }
 
     public void ShowPlayerProperty(PlayerController player)
