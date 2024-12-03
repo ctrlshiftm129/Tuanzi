@@ -1,4 +1,5 @@
 public enum EnemyBehaviour
 {
-    Chase
+    Chase,
+    ChaseAndRest,
 }
