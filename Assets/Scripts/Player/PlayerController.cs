@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,6 +15,7 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D m_rigidbody2D;
     private UIManager m_uiManager;
+    private EnemyManager m_enemyManager;
     
     public int WeaponDamage => 
         Mathf.Max(basicProp.attack + additionalProp.attack + weapon.weaponProp.attack, 1);
@@ -38,7 +40,9 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        m_uiManager = ManagerLocator.Instance.Get<UIManager>();
+        var locator = ManagerLocator.Instance;
+        m_uiManager = locator.Get<UIManager>();
+        m_enemyManager = locator.Get<EnemyManager>();
     }
 
     // Update is called once per frame
@@ -53,6 +57,17 @@ public class PlayerController : MonoBehaviour
         UpdateMove();
     }
 
+    #region Collider Event
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        var collisionGo = collision.gameObject;
+        var isEnemy = m_enemyManager.IsActiveEnemy(collisionGo);
+        if (isEnemy) Debug.LogError("死亡");
+    }
+
+    #endregion
+
     #region Update UI
 
     private void UpdatePropertyUI()
@@ -65,6 +80,7 @@ public class PlayerController : MonoBehaviour
     #region Move Logic
 
     private Vector2 m_moveDirection;
+    
     
     private void SolveMoveInput()
     {
@@ -97,5 +113,4 @@ public class PlayerController : MonoBehaviour
     }
 
     #endregion
-
 }
