@@ -22,7 +22,6 @@ public class Bullet
     public float range;
     public float speed;
     public int damage;
-    public float criticalHitRate;
     public bool penetrate;
     
     private Rigidbody2D m_rigidbody2D;

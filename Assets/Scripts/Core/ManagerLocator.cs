@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 鑾峰彇鍦烘櫙鍐呮寚瀹氱鐞嗗櫒
+/// 获取场景内指定管理器
 /// </summary>
 public class ManagerLocator
 {
-    public static ManagerLocator Instance { get; } = new();
+    public static ManagerLocator Instance { get; } = new ManagerLocator();
 
-    private readonly Dictionary<Type, Manager> m_managers = new();
+    private readonly Dictionary<Type, Manager> m_managers = new Dictionary<Type, Manager>();
 
     public void RegisterManager(Manager manager)
     {

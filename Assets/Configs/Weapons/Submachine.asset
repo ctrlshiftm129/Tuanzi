@@ -16,10 +16,10 @@ MonoBehaviour:
   weaponPrefab: {fileID: 0}
   description: "\u51B2\u554A\uFF01\uFF01\uFF01"
   weaponProp:
-    attack: 2
+    attack: 1
     damageRate: 0
-    criticalHitRate: 20
-    fireRate: 0.5
+    criticalHitRate: 0
+    fireRate: 0.2
     range: 40
     speed: 0
     lucky: 0

@@ -19,7 +19,7 @@ MonoBehaviour:
     attack: 10
     damageRate: 0
     criticalHitRate: 0
-    fireRate: 2
+    fireRate: 1.6
     range: 400
     speed: 0
     lucky: 0

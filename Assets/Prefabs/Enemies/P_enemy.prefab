@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 6514400961837588043}
   - component: {fileID: 6242726075636594066}
   - component: {fileID: 8385108068926762489}
-  - component: {fileID: 5220354046621328749}
   m_Layer: 8
   m_Name: P_enemy
   m_TagString: Untagged
@@ -173,7 +172,7 @@ BoxCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 640
+    m_Bits: 128
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -218,24 +217,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96fc3279a0fc68d489b1277f22e107ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!95 &5220354046621328749
-Animator:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4104007795628042928}
-  m_Enabled: 0
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: ab35ef1dcfdbc1a4d87e9237811f1375, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0

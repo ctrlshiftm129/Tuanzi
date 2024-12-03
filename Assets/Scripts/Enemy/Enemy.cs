@@ -3,17 +3,17 @@ using UnityEngine;
 
 public class Enemy
 {
-    public readonly EnemyConfig enemyConfig;
     public GameObject gameObject;
     public int hp;
     public bool isAlive;
     
+    private readonly EnemyConfig m_enemyConfig;
     private Rigidbody2D m_rigidbody2D;
 
     public Enemy(EnemyConfig enemyConfig)
     {
-        this.enemyConfig = enemyConfig;
-        hp = this.enemyConfig.hp;
+        m_enemyConfig = enemyConfig;
+        hp = m_enemyConfig.hp;
         isAlive = true;
     }
 
@@ -27,7 +27,7 @@ public class Enemy
         UpdateAlive();
         if (!isAlive) return;
         
-        switch (enemyConfig.behaviour)
+        switch (m_enemyConfig.behaviour)
         {
             case EnemyBehaviour.Chase:
                 Chase(playerPos);
@@ -47,7 +47,7 @@ public class Enemy
     private void Chase(Vector3 playerPos)
     {
         var aim = (playerPos - gameObject.transform.position).normalized;
-        m_rigidbody2D.velocity = aim * enemyConfig.speed;
+        m_rigidbody2D.velocity = aim * m_enemyConfig.speed;
     }
 
     #endregion

@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 杈撳叆鐩稿叧宸ュ叿鍑芥暟
+/// 输入相关工具函数
 /// </summary>
 public static class InputUtils
 {
     /// <summary>
-    /// 鑾峰彇绉诲姩鏂瑰悜鍚戦噺
+    /// 获取移动方向向量
     /// </summary>
     public static Vector2 GetMoveDirection()
     {

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
@@ -7,17 +6,12 @@ using UnityEngine.Pool;
 
 public class EnemyManager : Manager
 {
-    public List<EnemyConfig> enemyConfigs;
+    public GameObject enemyPrefab;
     public GameObject warningPrefab;
-    public event Action<Enemy> onEnemyDead;
-
-    private Dictionary<string, EnemyConfig> m_enemyConfigs;
     
     private readonly Dictionary<GameObject, Enemy> m_activeGo2Enemy = new();
     private readonly HashSet<Enemy> m_activeEnemies = new();
     private readonly List<Enemy> m_enemyUpdateTemp = new();
-
-    private int m_delayCount;
 
     private void Awake()
     {
@@ -27,27 +21,23 @@ public class EnemyManager : Manager
 
     #region Create
 
-    public void AddEnemy(int enemyId, Vector3 worldPos)
+    public void AddEnemy(EnemyConfig config, Vector3 worldPos)
     {
-        var enemy = new Enemy(enemyConfigs[enemyId]);
+        var enemy = new Enemy(config);
         CreateEnemyGameObject(worldPos, enemy);
     }
 
-    public void AddEnemyDelay(int enemyId, Vector3 worldPos, float delay = 1, bool bigWarn = false)
+    public void AddEnemyDelay(EnemyConfig config, Vector3 worldPos, float delay = 2)
     {
         var warningGo = CreateWarningGameObject(worldPos);
-        var scale = bigWarn ? new Vector3(2, 2, 2) : Vector3.one;
-        warningGo.transform.localScale = scale;
-        ++m_delayCount;
-        StartCoroutine(AddEnemyDelayCore(warningGo, enemyId, worldPos, delay));
+        StartCoroutine(AddEnemyDelayCore(warningGo, config, worldPos, delay));
     }
 
-    private IEnumerator AddEnemyDelayCore(GameObject warningGo, int enemyId, Vector3 worldPos, float delay)
+    private IEnumerator AddEnemyDelayCore(GameObject warningGo, EnemyConfig config, Vector3 worldPos, float delay)
     {
         yield return new WaitForSeconds(delay); // 等待一段时间
         RecycleWarningGameObject(warningGo);
-        AddEnemy(enemyId, worldPos);
-        --m_delayCount;
+        AddEnemy(config, worldPos);
     }
 
     #endregion
@@ -56,7 +46,7 @@ public class EnemyManager : Manager
 
     public bool HasActiveEnemy()
     {
-        return m_activeGo2Enemy.Count > 0 || m_delayCount > 0;
+        return m_activeGo2Enemy.Count > 0;
     }
     
     public bool IsActiveEnemy(GameObject go)
@@ -104,7 +94,6 @@ public class EnemyManager : Manager
 
         foreach (var enemy in m_enemyUpdateTemp)
         {
-            onEnemyDead?.Invoke(enemy);
             RecycleEnemyGameObject(enemy);
         }
         m_enemyUpdateTemp.Clear();
@@ -129,12 +118,10 @@ public class EnemyManager : Manager
 
     private void CreateEnemyGameObject(Vector3 pos, Enemy enemy)
     {
-        var enemyPrefab = enemy.enemyConfig.enemyPrefab;
         var enemyGameObject = m_gameObjectPool.TryGetGameObject(enemyPrefab);
         if (enemyGameObject == null)
         {
             enemyGameObject = Instantiate(enemyPrefab);
-            enemyGameObject.SetActive(false);
         }
         enemy.gameObject = enemyGameObject;
         enemy.gameObject.transform.SetParent(m_enemyRoot.transform);
@@ -159,7 +146,6 @@ public class EnemyManager : Manager
         m_activeEnemies.Remove(enemy);
         m_activeGo2Enemy.Remove(enemy.gameObject);
         
-        var enemyPrefab = enemy.enemyConfig.enemyPrefab;
         m_gameObjectPool.RecycleGameObject(enemyPrefab, enemy.gameObject);
     }
 
