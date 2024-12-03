@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 82c14c453cc84f05868989168d1c165b, type: 3}
-  m_Name: NormalEnemy
+  m_Name: NormalEnemy_2
   m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 4104007795628042928, guid: f310d8cb1ce41c74a9bf41d21e132700, type: 3}
+  enemyPrefab: {fileID: 4104007795628042928, guid: 4833184d2af42b34babd5dcdf20afad3, type: 3}
   hp: 2
   speed: 1
   behaviour: 0

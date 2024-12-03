@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Pistol
   m_EditorClassIdentifier: 
   weaponName: "\u624B\u67AA"
-  prefabName: 
+  weaponPrefab: {fileID: 0}
   description: "\u8FD9\u662F\u4E00\u628A\u5F88\u725B\u7684\u624B\u67AA"
   weaponProp:
-    attack: 1
+    attack: 5
     damageRate: 0
     criticalHitRate: 0
-    fireRate: 0.8
-    range: 60
+    fireRate: 1
+    range: 80
     speed: 0
     lucky: 0
   bulletConfig: {fileID: 11400000, guid: 7b4b1b1550822a34889f21f22f1a0d51, type: 2}

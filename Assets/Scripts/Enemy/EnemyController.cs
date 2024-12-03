@@ -29,7 +29,13 @@ public class EnemyController : MonoBehaviour
     private void SolveBulletHit(Bullet bullet, GameObject bulletGo)
     {
         var enemyManager = ManagerLocator.Instance.Get<EnemyManager>();
-        enemyManager.SetDamageToEnemy(gameObject, bullet.damage);
+        var uiManager = ManagerLocator.Instance.Get<UIManager>();
+        var rand = (int)(1 + Random.value * 99);
+        var critical = rand <= bullet.criticalHitRate;
+        var damage = bullet.damage;
+        if (critical) damage *= 2;
+        enemyManager.SetDamageToEnemy(gameObject, damage);
         BulletManager.SolveBulletHit(bulletGo);
+        uiManager.ShowDamageAtPos(damage, critical, gameObject.transform.position);
     }
 }

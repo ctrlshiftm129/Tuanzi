@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ¹ÜÀíÆ÷»ùÀà
-/// Í¨¹ı¶¨Î»Æ÷¿ÉÒÔ·ÃÎÊµ±Ç°³¡¾°´æÔÚµÄ¹ÜÀíÆ÷¶ÔÏó
+/// ç®¡ç†å™¨åŸºç±»
+/// é€šè¿‡å®šä½å™¨å¯ä»¥è®¿é—®å½“å‰åœºæ™¯å­˜åœ¨çš„ç®¡ç†å™¨å¯¹è±¡
 /// </summary>
 public abstract class Manager : MonoBehaviour
 {
