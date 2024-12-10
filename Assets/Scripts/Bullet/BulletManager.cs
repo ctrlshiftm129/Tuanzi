@@ -31,6 +31,7 @@ public class BulletManager : Manager
             range = player.WeaponRange,
             speed = bulletConfig.speed,
             damage = player.WeaponDamage,
+            criticalHitRate = player.CriticalHitRate,
             penetrate = bulletConfig.penetrate
         };
         CreateNewBulletGameObject(bullet);
@@ -111,6 +112,7 @@ public class BulletManager : Manager
         if (bulletGameObject == null)
         {
             bulletGameObject = Instantiate(prefab);
+            bulletGameObject.SetActive(false);
         }
 
         bullet.gameObject = bulletGameObject;
