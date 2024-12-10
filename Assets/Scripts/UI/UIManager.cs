@@ -2,22 +2,29 @@ using System;
 using System.Collections;
 using System.Text;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class UIManager : Manager
 {
     public GameObject damageTextPrefab;
     
+    [Space]
     public GameObject playerPropertyPanel;
+    
+    [Space]
     public GameObject levelPanel;
+    public GameObject levelTimePanel;
     public GameObject moneyPanel;
-    public GameObject timePanel;
     
     private void Awake()
     {
         InitPoolRoot();
         Register2Locator();
     }
+
+    #region Show UI Context
 
     public void ShowPlayerProperty(PlayerController player)
     {
@@ -38,21 +45,42 @@ public class UIManager : Manager
     public void ShowLevel(int level)
     {
         var panel = levelPanel.GetComponent<TextMeshProUGUI>();
-        panel.text = $"Level {level}";
+        panel.text = $"关卡 {level}";
     }
     
     public void ShowMoney(int money)
     {
         var panel = moneyPanel.GetComponent<TextMeshProUGUI>();
-        panel.text = $"金钱: {money}";
+        panel.text = money.ToString();
     }
 
-    public void ShowTime(int seconds)
+    private static readonly int Flicker = Animator.StringToHash("Flicker");
+    public void ShowLevelTime(int seconds)
     {
-        var panel = timePanel.GetComponent<TextMeshProUGUI>();
+        var color = Color.white;
+        var animator = levelTimePanel.GetComponent<Animator>();
+        if (seconds <= 10)
+        {
+            color = Color.red;
+            animator.SetBool(Flicker, true);
+        }
+        else
+        {
+            animator.SetBool(Flicker, false);
+        }
+        
+        var panel = levelTimePanel.GetComponent<TextMeshProUGUI>();
         var min = seconds / 60;
         seconds %= 60;
         panel.text = $"{min:00}:{seconds:00}";
+        panel.color = color;
+    }
+
+    public void ShowCountdownText(string text)
+    {
+        var panel = levelTimePanel.GetComponent<TextMeshProUGUI>();
+        panel.text = text;
+        panel.color = Color.red;
     }
 
     public void ShowDamageAtPos(int damage, bool critical, Vector3 worldPos)
@@ -66,6 +94,8 @@ public class UIManager : Manager
         yield return new WaitForSeconds(delay); // 等待一段时间后回收
         RecycleDamageText(go);
     }
+
+    #endregion
 
     #region UI Prefab Pool
 
