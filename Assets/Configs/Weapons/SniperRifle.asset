@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weaponName: "\u72D9\u51FB\u6B65\u67AA"
   weaponPrefab: {fileID: 0}
-  description: "\u72D9\u51FB\u6B65\u67AA\uFF0C\u89C1\u8C01\u5C31\u6740"
+  description: "\u5C04\u7A0B\u6781\u8FDC\uFF0C\u4F24\u5BB3\u9AD8\u3001\u53EF\u7A7F\u900F\u9020\u6210\u4F24\u5BB3\u3002\u4F46\u5C04\u901F\u5F88\u6162"
   weaponProp:
     attack: 10
     damageRate: 0

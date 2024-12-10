@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: PistolBullet
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 195184549945928304, guid: 63d758ea283070c45ba06f051ff64c14, type: 3}
-  speed: 20
+  speed: 10
+  penetrate: 0

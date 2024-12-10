@@ -48,6 +48,7 @@ public class Enemy
     {
         var aim = (playerPos - gameObject.transform.position).normalized;
         m_rigidbody2D.velocity = aim * enemyConfig.speed;
+
     }
 
     #endregion

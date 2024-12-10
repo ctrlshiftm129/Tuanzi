@@ -7,6 +7,8 @@ using UnityEngine;
 /// </summary>
 public class PlayerController : MonoBehaviour
 {
+    public static WeaponConfig defaultWeaponConfig;
+    
     public int hp;
     public GameProperty basicProp = new();
     [HideInInspector]
@@ -16,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D m_rigidbody2D;
     private UIManager m_uiManager;
     private EnemyManager m_enemyManager;
+    private Animator m_animator;
     
     public int WeaponDamage => 
         Mathf.Max(basicProp.attack + additionalProp.attack + weapon.weaponProp.attack, 1);
@@ -36,6 +39,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         m_rigidbody2D = GetComponent<Rigidbody2D>();
+        if (defaultWeaponConfig != null) weapon = defaultWeaponConfig;
     }
 
     private void Start()
@@ -43,6 +47,7 @@ public class PlayerController : MonoBehaviour
         var locator = ManagerLocator.Instance;
         m_uiManager = locator.Get<UIManager>();
         m_enemyManager = locator.Get<EnemyManager>();
+        m_animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -79,37 +84,35 @@ public class PlayerController : MonoBehaviour
 
     #region Move Logic
 
+    private static readonly int Running = Animator.StringToHash("Running");
+    private static readonly int FaceLeft = Animator.StringToHash("FaceLeft");
     private Vector2 m_moveDirection;
-    
     
     private void SolveMoveInput()
     {
         m_moveDirection = InputUtils.GetMoveDirection();
+        if (m_moveDirection == Vector2.zero)
+        {
+            m_animator.SetBool(Running, false);
+        }
+        else
+        {
+            m_animator.SetBool(Running, true);
+            if (m_moveDirection.x > 0)
+            {
+                m_animator.SetBool(FaceLeft, false);
+            }
+            else if (m_moveDirection.x < 0)
+            {
+                m_animator.SetBool(FaceLeft, true);
+            }
+        }
     }
 
     private void UpdateMove()
     {
         var move = m_moveDirection * Speed;
         m_rigidbody2D.velocity = move;
-    }
-
-    #endregion
-
-    #region Auto Attack Logic
-
-    public void Switch1()
-    {
-        weapon = AssetDatabase.LoadAssetAtPath<WeaponConfig>("Assets/Configs/Weapons/Pistol.asset");
-    }
-
-    public void Switch2()
-    {
-        weapon = AssetDatabase.LoadAssetAtPath<WeaponConfig>("Assets/Configs/Weapons/SniperRifle.asset");
-    }
-
-    public void Switch3()
-    {
-        weapon = AssetDatabase.LoadAssetAtPath<WeaponConfig>("Assets/Configs/Weapons/Submachine.asset");
     }
 
     #endregion
