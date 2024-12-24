@@ -24,7 +24,8 @@ public class Bullet
     public int damage;
     public float criticalHitRate;
     public bool penetrate;
-    
+
+    public bool huimie;
     private Rigidbody2D m_rigidbody2D;
 
     public Bullet(BulletOwner owner)
@@ -38,11 +39,19 @@ public class Bullet
     /// </summary>
     public void Init()
     {
-        m_rigidbody2D = gameObject.GetComponent<Rigidbody2D>();
+        m_rigidbody2D = gameObject.GetComponentInChildren<Rigidbody2D>();
         
         // 计算当前朝向和目标朝向之间的旋转角度
         var angle = Vector3.SignedAngle(Vector3.right, direction, Vector3.forward);
         gameObject.transform.Rotate(Vector3.forward, angle);
+    }
+
+    /// <summary>
+    /// 销毁时执行一次
+    /// </summary>
+    public void OnDestroy()
+    {
+        gameObject.transform.localScale = bulletPrefab.transform.localScale;
     }
 
     /// <summary>

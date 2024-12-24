@@ -15,39 +15,48 @@ public class PlayerController : MonoBehaviour
     public GameProperty additionalProp = new();
     public WeaponConfig weapon;
 
+    public bool CanMove { get; set; }
+    
     private Rigidbody2D m_rigidbody2D;
-    private UIManager m_uiManager;
-    private EnemyManager m_enemyManager;
     private Animator m_animator;
     
-    public int WeaponDamage => 
-        Mathf.Max(basicProp.attack + additionalProp.attack + weapon.weaponProp.attack, 1);
-    public float DamageRate => 
-        Mathf.Max(basicProp.damageRate + additionalProp.damageRate + weapon.weaponProp.damageRate, 0);
-    public float CriticalHitRate => 
-        Mathf.Max(basicProp.criticalHitRate + additionalProp.criticalHitRate + weapon.weaponProp.criticalHitRate, 0);
-    public float WeaponFireRate => 
-        Mathf.Clamp(basicProp.fireRate + additionalProp.fireRate + weapon.weaponProp.fireRate, 0.1f, 10f);
+    private UIManager m_uiManager;
+    private EnemyManager m_enemyManager;
+    private EconomicManager m_economicManager;
+    private GameManager m_gameManager;
+    
+    public int AttAck => basicProp.attack + additionalProp.attack + weapon.weaponProp.attack;
+    public float DamageRate => basicProp.damageRate + additionalProp.damageRate + weapon.weaponProp.damageRate;
+    public float CriticalHitRate => Mathf.Max(basicProp.criticalHitRate + additionalProp.criticalHitRate + weapon.weaponProp.criticalHitRate, 0);
+    private float FireRate => basicProp.fireRate + weapon.weaponProp.fireRate + additionalProp.fireRate;
+    public float FireRateChange => basicProp.fireRateChange + weapon.weaponProp.fireRateChange + additionalProp.fireRateChange;
     public float WeaponRange => 
         Mathf.Max(basicProp.range + additionalProp.range + weapon.weaponProp.range, 10);
-    public float Speed => 
-        Mathf.Max(basicProp.speed + additionalProp.speed + weapon.weaponProp.speed, 0);
+    private float Speed => basicProp.speed + additionalProp.speed;
+    private float SpeedChange => basicProp.speedChange + additionalProp.speedChange;
     public float Lucky => 
         Mathf.Max(basicProp.lucky + additionalProp.lucky + weapon.weaponProp.lucky, 0);
+    public int WeaponDamage => (int)Mathf.Max(AttAck * (1 + DamageRate * 0.01f), 1);
+    public float WeaponFireRate => Mathf.Clamp(FireRate / (1 + FireRateChange * 0.01f), 0.1f, 5);
+    public float PlayerSpeed => Mathf.Clamp(Speed * (1 + SpeedChange * 0.01f), 0.1f, 5);
     
     // Start is called before the first frame update
     void Awake()
     {
         m_rigidbody2D = GetComponent<Rigidbody2D>();
+        CanMove = true;
         if (defaultWeaponConfig != null) weapon = defaultWeaponConfig;
     }
 
     private void Start()
     {
+        m_animator = GetComponent<Animator>();
+        
         var locator = ManagerLocator.Instance;
         m_uiManager = locator.Get<UIManager>();
         m_enemyManager = locator.Get<EnemyManager>();
-        m_animator = GetComponent<Animator>();
+        m_economicManager = locator.Get<EconomicManager>();
+        m_gameManager = locator.Get<GameManager>();
     }
 
     // Update is called once per frame
@@ -68,7 +77,38 @@ public class PlayerController : MonoBehaviour
     {
         var collisionGo = collision.gameObject;
         var isEnemy = m_enemyManager.IsActiveEnemy(collisionGo);
-        if (isEnemy) Debug.LogError("死亡");
+        if (isEnemy)
+        {
+            OnHitByEnemy();
+        }
+        
+        var isChest = collision.GetComponent<ChestController>() != null;
+        if (isChest)
+        {
+            OnHitByChest(collision.gameObject);
+        }
+
+        var isShop = collision.GetComponent<ShopController>() != null;
+        if (isShop)
+        {
+            OnHitByShop();
+        }
+    }
+
+    private void OnHitByEnemy()
+    {
+        Debug.LogError("死亡");
+    }
+
+    private void OnHitByChest(GameObject chest)
+    {
+        m_gameManager.TryStartOpenChest();
+        Destroy(chest);
+    }
+
+    private void OnHitByShop()
+    {
+        m_gameManager.OpenShopPanel();
     }
 
     #endregion
@@ -111,7 +151,13 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateMove()
     {
-        var move = m_moveDirection * Speed;
+        if (!CanMove)
+        {
+            m_rigidbody2D.velocity = Vector2.zero;
+            return;
+        }
+        
+        var move = m_moveDirection * PlayerSpeed;
         m_rigidbody2D.velocity = move;
     }
 

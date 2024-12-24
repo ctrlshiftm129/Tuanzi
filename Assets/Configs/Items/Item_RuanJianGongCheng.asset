@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82390bd326d947b18725603474b71a72, type: 3}
+  m_Name: Item_RuanJianGongCheng
+  m_EditorClassIdentifier: 
+  icon: {fileID: -769999219, guid: 0991b6809bb7ad940b8cafcc1aecfac8, type: 3}
+  level: 3
+  itemName: "\u8F6F\u4EF6\u5DE5\u7A0B"
+  itemDescription: "\u4E00\u79CD\u6765\u81EA\u5F02\u4E16\u754C\u7684\u7A76\u6781\u529B\u91CF\uFF0C\u636E\u8BF4\u5A01\u529B<color=red>\u6781\u5176\u5F3A\u5927</color>\uFF0C\u4F3C\u4E4E\u5DF2\u7ECF\u6210\u4E3A<color=yellow>\u4F20\u8BF4</color>"
+  itemProp:
+    attack: 1
+    damageRate: 10
+    criticalHitRate: 5
+    fireRate: 0
+    fireRateChange: 10
+    range: 5
+    speed: 0
+    speedChange: 5
+    lucky: 5
+  basePrice: 0

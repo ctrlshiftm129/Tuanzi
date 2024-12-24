@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: SubmachineBullet
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 195184549945928304, guid: cf76411a38b28bb4094fa1292d5a3a78, type: 3}
-  speed: 30
+  speed: 15
   penetrate: 0

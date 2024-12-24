@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: SniperBullet
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 195184549945928304, guid: c13f9df4a9028c74d94012318dcc79ea, type: 3}
-  speed: 50
+  speed: 25
   penetrate: 1
