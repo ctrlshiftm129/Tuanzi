@@ -6,6 +6,7 @@ using UnityEditor;
 
 public class EnemyConfig : ScriptableObject
 {
+    public string enemyName;
     public GameObject enemyPrefab;
     public int hp;
     public float speed;

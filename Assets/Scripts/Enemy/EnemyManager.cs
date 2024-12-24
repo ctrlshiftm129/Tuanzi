@@ -7,15 +7,19 @@ using UnityEngine.Pool;
 
 public class EnemyManager : Manager
 {
+    private static readonly int Dead = Animator.StringToHash("Dead");
+    
     public List<EnemyConfig> enemyConfigs;
     public GameObject warningPrefab;
-    public event Action<Enemy> onEnemyDead;
+    public event Action<Enemy> OnNormalEnemyDead;
+    public event Action<Enemy> OnBossDead;
 
     private Dictionary<string, EnemyConfig> m_enemyConfigs;
     
     private readonly Dictionary<GameObject, Enemy> m_activeGo2Enemy = new();
     private readonly HashSet<Enemy> m_activeEnemies = new();
     private readonly List<Enemy> m_enemyUpdateTemp = new();
+    private Enemy m_boss;
 
     private int m_delayCount;
 
@@ -25,29 +29,47 @@ public class EnemyManager : Manager
         Register2Locator();
     }
 
+    #region EnemyInfo
+
+    public EnemyConfig GetEnemyConfigById(int id)
+    {
+        return enemyConfigs[id];
+    }
+
+    #endregion
+
     #region Create
 
-    public void AddEnemy(int enemyId, Vector3 worldPos)
-    {
-        var enemy = new Enemy(enemyConfigs[enemyId]);
-        CreateEnemyGameObject(worldPos, enemy);
-    }
-
-    public void AddEnemyDelay(int enemyId, Vector3 worldPos, float delay = 1, bool bigWarn = false)
+    public void AddBossDelay(int enemyId, Vector3 worldPos, float delay = 4)
     {
         var warningGo = CreateWarningGameObject(worldPos);
-        var scale = bigWarn ? new Vector3(2, 2, 2) : Vector3.one;
-        warningGo.transform.localScale = scale;
+        warningGo.transform.localScale = new Vector3(2, 2, 2);
         ++m_delayCount;
-        StartCoroutine(AddEnemyDelayCore(warningGo, enemyId, worldPos, delay));
+        StartCoroutine(AddEnemyDelayCore(warningGo, enemyId, worldPos, delay, true));
     }
 
-    private IEnumerator AddEnemyDelayCore(GameObject warningGo, int enemyId, Vector3 worldPos, float delay)
+    public void AddEnemyDelay(int enemyId, Vector3 worldPos, float delay = 1)
+    {
+        var warningGo = CreateWarningGameObject(worldPos);
+        warningGo.transform.localScale = Vector3.one;
+        ++m_delayCount;
+        StartCoroutine(AddEnemyDelayCore(warningGo, enemyId, worldPos, delay, false));
+    }
+
+    private IEnumerator AddEnemyDelayCore(GameObject warningGo, int enemyId, Vector3 worldPos, float delay, bool isBoss)
     {
         yield return new WaitForSeconds(delay); // 等待一段时间
         RecycleWarningGameObject(warningGo);
-        AddEnemy(enemyId, worldPos);
+        var enemy = AddEnemy(enemyId, worldPos);
+        if (isBoss) m_boss = enemy;
         --m_delayCount;
+    }
+    
+    private Enemy AddEnemy(int enemyId, Vector3 worldPos)
+    {
+        var enemy = new Enemy(enemyConfigs[enemyId]);
+        CreateEnemyGameObject(worldPos, enemy);
+        return enemy;
     }
 
     #endregion
@@ -81,6 +103,14 @@ public class EnemyManager : Manager
         return closestEnemy is not null;
     }
 
+    public bool TryGetBossHpRatio(out float hpRatio)
+    {
+        hpRatio = 0;
+        if (m_boss is null) return false;
+        hpRatio = m_boss.GetHpRatio();
+        return true;
+    }
+
     #endregion
 
     #region Update
@@ -89,6 +119,7 @@ public class EnemyManager : Manager
     {
         if (!m_activeGo2Enemy.TryGetValue(enemyGo, out var enemy)) return;
         enemy.hp -= damage;
+        StartCoroutine(enemy.ShowAffectFXCore());
     }
     
     public void UpdateAllActiveEnemy(Vector3 playerPos)
@@ -104,11 +135,27 @@ public class EnemyManager : Manager
 
         foreach (var enemy in m_enemyUpdateTemp)
         {
-            onEnemyDead?.Invoke(enemy);
+            if (m_boss is not null && enemy == m_boss)
+            {
+                OnBossDead?.Invoke(m_boss);
+                m_boss = null;
+            }
+            else
+            {
+                OnNormalEnemyDead?.Invoke(enemy);
+            }
             RecycleEnemyGameObject(enemy);
+            //StartCoroutine(ShowEnemyDeadFX(enemy));
         }
         m_enemyUpdateTemp.Clear();
     }
+
+    // private IEnumerator ShowEnemyDeadFX(Enemy enemy)
+    // {
+    //     enemy.animator.SetTrigger(Dead);
+    //     yield return new WaitForSeconds(1);
+    //     RecycleEnemyGameObject(enemy);
+    // }
 
     #endregion
     

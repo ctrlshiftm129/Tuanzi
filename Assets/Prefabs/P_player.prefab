@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5485005616814643330}
   - component: {fileID: 6172452742919699610}
   - component: {fileID: 4226755797639393474}
-  - component: {fileID: 8889432373478392172}
+  - component: {fileID: 2552493223407889727}
   - component: {fileID: 4815771811753214588}
   - component: {fileID: 5379918843696121722}
   m_Layer: 7
@@ -77,7 +77,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 10
   m_Sprite: {fileID: -6447722072507503168, guid: 10f3cacccb0c4c547be76836eba20664, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -107,16 +107,20 @@ MonoBehaviour:
     damageRate: 0
     criticalHitRate: 0
     fireRate: 0
+    fireRateChange: 0
     range: 0
     speed: 5
+    speedChange: 0
     lucky: 0
   additionalProp:
     attack: 0
     damageRate: 0
     criticalHitRate: 0
     fireRate: 0
+    fireRateChange: 0
     range: 0
     speed: 0
+    speedChange: 0
     lucky: 0
   weapon: {fileID: 11400000, guid: 82c4d1c47a80a2744b72be80de79999a, type: 2}
 --- !u!114 &4226755797639393474
@@ -131,8 +135,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09faab9e04364462bbcc95fe1d2c8f27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!58 &8889432373478392172
-CircleCollider2D:
+--- !u!61 &2552493223407889727
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -163,9 +167,19 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.030607402, y: -0.34483895}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Size: {x: 0.69012785, y: 0.3103221}
+  m_EdgeRadius: 0
 --- !u!50 &4815771811753214588
 Rigidbody2D:
   serializedVersion: 4

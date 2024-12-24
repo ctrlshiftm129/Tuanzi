@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82390bd326d947b18725603474b71a72, type: 3}
+  m_Name: Item_JiaXinEyes
+  m_EditorClassIdentifier: 
+  icon: {fileID: 176784686, guid: 0991b6809bb7ad940b8cafcc1aecfac8, type: 3}
+  level: 0
+  itemName: "\u4F73\u6B23\u4E4B\u611F"
+  itemDescription: "\u8FDC\u53E4\u4E03\u5927\u795E\u79D8\u529B\u91CF\u4E4B\u4E00\uFF0C\u63D0\u9AD8\u4F60\u7684\u653B\u51FB\u8303\u56F4"
+  itemProp:
+    attack: 0
+    damageRate: 0
+    criticalHitRate: 0
+    fireRate: 0
+    fireRateChange: 0
+    range: 5
+    speed: 0
+    speedChange: 0
+    lucky: 0
+  basePrice: 20

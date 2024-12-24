@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,7 +22,7 @@ public class BulletManager : Manager
 
     #region Create
 
-    public void PlayerShoot(PlayerController player, Vector3 direction, BulletConfig bulletConfig)
+    public void PlayerShoot(PlayerController player, Vector3 direction, BulletConfig bulletConfig, Func<Bullet, Bullet> callback = null)
     {
         var bullet = new Bullet(BulletOwner.Player)
         {
@@ -34,7 +35,9 @@ public class BulletManager : Manager
             criticalHitRate = player.CriticalHitRate,
             penetrate = bulletConfig.penetrate
         };
+
         CreateNewBulletGameObject(bullet);
+        if (callback != null) bullet = callback(bullet);
 
         m_activeBullets.Add(bullet);
         m_activeGo2Bullet.Add(bullet.gameObject, bullet);
@@ -53,7 +56,7 @@ public class BulletManager : Manager
     {
         var bulletPos = bullet.gameObject.transform.position;
         var moveDis = Vector3.Distance(bulletPos, bullet.originalPos);
-        if (moveDis > bullet.range) return false;
+        if (moveDis * 10 > bullet.range) return false;
 
         return bulletPos.x > rangeX.x && bulletPos.x < rangeX.y
                                       && bulletPos.y > rangeY.x && bulletPos.y < rangeY.y;
@@ -93,6 +96,7 @@ public class BulletManager : Manager
 
     private void KillBullet(Bullet bullet)
     {
+        bullet.OnDestroy();
         RecycleBullet(bullet);
         m_activeGo2Bullet.Remove(bullet.gameObject);
         m_activeBullets.Remove(bullet);

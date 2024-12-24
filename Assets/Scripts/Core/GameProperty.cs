@@ -7,10 +7,25 @@ using UnityEngine;
 public class GameProperty
 {
     public int attack;
-    public float damageRate;
-    public float criticalHitRate;
+    public int damageRate;
+    public int criticalHitRate;
     public float fireRate;
-    public float range; 
+    public int fireRateChange;
+    public int range; 
     public float speed;
-    public float lucky;
+    public int speedChange;
+    public int lucky;
+
+    public void Add(GameProperty othProperty)
+    {
+        attack += othProperty.attack;
+        damageRate += othProperty.damageRate;
+        criticalHitRate += othProperty.criticalHitRate;
+        fireRate += othProperty.fireRate;
+        fireRateChange += othProperty.fireRateChange;
+        range += othProperty.range;
+        speed += othProperty.speed;
+        speedChange += othProperty.speedChange;
+        lucky += othProperty.lucky;
+    }
 }

@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
+using Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 /// <summary>
@@ -13,6 +12,9 @@ using Random = UnityEngine.Random;
 public class GameManager : Manager
 {
     private static readonly int Exit = Animator.StringToHash("Exit");
+    private static readonly int ShopEnter = Animator.StringToHash("ShopEnter");
+    private static readonly int Stop = Animator.StringToHash("Stop");
+    private static readonly int ShopExit = Animator.StringToHash("ShopExit");
     private const string TITLE_SCENE_NAME = "Title";
     
     public bool debugMode;
@@ -24,13 +26,17 @@ public class GameManager : Manager
     public GameObject mapRoot;
     
     [Space]
-    public GameObject gameRoot;
     public GameObject player;
     
+    // cache
     private ManagerLocator m_locator;
     private BulletManager m_bulletManager;
     private EnemyManager m_enemyManager;
     private UIManager m_uiManager;
+    private AudioManager m_audioManager;
+    private EconomicManager m_economicManager;
+    private PlayerController m_player;
+    private readonly List<ItemConfig> m_itemConfigListTemp = new();
     
     private void Awake()
     {
@@ -44,6 +50,10 @@ public class GameManager : Manager
         m_bulletManager = m_locator.Get<BulletManager>();
         m_enemyManager = m_locator.Get<EnemyManager>();
         m_uiManager = m_locator.Get<UIManager>();
+        m_audioManager = m_locator.Get<AudioManager>();
+        m_economicManager = m_locator.Get<EconomicManager>();
+        m_player = player.GetComponent<PlayerController>();
+        m_enemyManager.OnBossDead += OnBossDeadEvent;
 
         if (debugMode)
         {
@@ -53,7 +63,9 @@ public class GameManager : Manager
 
     private void Update()
     {
+        m_economicManager.UpdateActiveCoin(player.transform.position);
         LevelLoop();
+        OnSystemUpdate();
     }
 
     private void FixedUpdate()
@@ -118,35 +130,45 @@ public class GameManager : Manager
     {
         yield return new WaitForSeconds(2);
         
-        var animator = gameRoot.GetComponent<Animator>();
+        var animator = GetComponent<Animator>();
         animator.SetTrigger(Animator.StringToHash("Start"));
         while (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1)
         {
-            if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime > 0.8)
-            {
-                player.SetActive(true);
-            }
             yield return null;
         }
         
-        var playerController = player.GetComponent<PlayerController>();
-        playerController.enabled = true;
+        Debug.Log("过场动画完成");
+        m_player.enabled = true;
         var autoAttack = player.GetComponent<PlayerAutoAttack>();
         autoAttack.enabled = true;
-        Debug.Log("过场动画完成");
-        InitGame();
+        InitGame(1);
+    }
+
+    private void InitPlayer()
+    {
+        player.SetActive(true);
+        Debug.Log("初始化玩家成功");
     }
 
     #endregion
 
-    #region Game Logic
+    #region Player Logic
+
+    public Vector3 GetPlayerPosition()
+    {
+        return player.transform.position;
+    }
+
+    #endregion
+
+    #region Battle Part
     
-    // 2分30秒一关
+    // 1分30秒一关
     // 1. 每2秒刷单个怪物 (normal wave)
     // 2. 每30秒一波怪群 (big wave)
     // 3. 每关到时间后出一个Boss (boss wave)
     
-    private const int PER_TURN_TIME = 150;
+    private const int PER_TURN_TIME = 90;
     private const int PER_NORMAL_WAVE_TIME = 2;
     private const int PER_BIG_WAVE_TIME = 30;
     
@@ -158,24 +180,26 @@ public class GameManager : Manager
     private float m_normalWaveTimer;
     private float m_bigWaveTimer;
     private bool m_bossWave;
+    private bool m_levelComplete;
     
     private float m_bigWaveGenTimer;
     private int m_enemyCount;
     private Action m_enemyGenerator;
+    private Enemy m_boss;
 
     #region Level & Turn
     
-    private void InitGame()
+    private void InitGame(int level)
     {
-        StartCoroutine(StartLevel(1));
+        StartCoroutine(StartLevel(level));
     }
 
     private float m_countdownTimer;
     private IEnumerator StartLevel(int level)
     {
         m_currentLevel = level;
-        m_uiManager.ShowLevel(1);
-        m_countdownTimer = 4;
+        m_uiManager.ShowLevel(m_currentLevel);
+        m_countdownTimer = 1;
         while (m_countdownTimer > 0)
         {
             m_countdownTimer -= Time.deltaTime;
@@ -189,12 +213,15 @@ public class GameManager : Manager
         m_turnTime = PER_TURN_TIME;
         m_normalWaveTimer = m_bigWaveTimer = 0;
         m_bossWave = false;
+        m_levelComplete = false;
         m_uiManager.ShowLevelTime((int)m_turnTime);
+        m_audioManager.PlayNormalBgm(0);
     }
     
     private void LevelLoop()
     {
         if (!m_isLevelRunning) return;
+        if (m_bossWave && !m_levelComplete) UpdateBossHp();
         if (m_turnTime < 0)
         {
             if (!m_enemyManager.HasActiveEnemy())
@@ -221,7 +248,9 @@ public class GameManager : Manager
 
     private void CompleteLevel()
     {
+        m_levelComplete = true;
         m_isLevelRunning = false;
+        m_canOpenChest = true;
     }
 
     #endregion
@@ -259,20 +288,37 @@ public class GameManager : Manager
         // 刷怪
         m_enemyGenerator?.Invoke();
     }
-
+    
     private void UpdateBossWave()
     {
         if (m_bossWave) return;
 
         m_bossWave = true;
         var pos = RandomUtils.RandomVector2Pos(2f, 18f, 2f, 12f);
-        m_enemyManager.AddEnemyDelay(1, pos, 4, true);
+        m_audioManager.FadesOutCurrentBgm(() =>
+        {
+            m_audioManager.PlayBossBgm();
+        });
+        m_enemyManager.AddBossDelay(1, pos);
+        
+        var bossConfig = m_enemyManager.GetEnemyConfigById(1);
+        m_uiManager.ShowBossHp(bossConfig.enemyName, 4);
+    }
+
+    private void UpdateBossHp()
+    {
+        if (!m_enemyManager.TryGetBossHpRatio(out var ratio)) return;
+        m_uiManager.UpdateBossHp(ratio);
+    }
+
+    private void OnBossDeadEvent(Enemy boss)
+    {
+        m_uiManager.HideBossInfo();
+        m_audioManager.FadesOutCurrentBgm();
     }
 
     #endregion
-
-    #endregion
-
+    
     #region Enemy Generator
 
     private void AddDistributeEnemies()
@@ -330,6 +376,152 @@ public class GameManager : Manager
             var pos = m_enemyGroupCenter + Random.insideUnitCircle * 2f;
             m_enemyManager.AddEnemyDelay(0, new Vector3(pos.x, pos.y, 0));
             --m_enemyCount;
+        }
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Chest Part
+
+    private bool m_canOpenChest;
+
+    public void TryStartOpenChest()
+    {
+        if (!m_canOpenChest)
+        {
+            Debug.LogError("在非正常阶段尝试打开宝箱？");
+            return;
+        }
+        
+        m_uiManager.OpenChestPanel();
+        m_uiManager.SetChestPanelAnimNext();
+    }
+    
+    public void ProcessChestItems()
+    {
+        m_economicManager.GetChestRandomItems(m_itemConfigListTemp);
+        var maxLevel = ItemLevel.L1;
+        for (var i = 0; i < 3; ++i)
+        {
+            var item = m_itemConfigListTemp[i];
+            if (item.level > maxLevel) maxLevel = item.level;
+            m_uiManager.BuildChestSelection(item, i, () =>
+            {
+                OnChestItemSelect(item);
+            });
+        }
+        m_itemConfigListTemp.Clear();
+        m_uiManager.SetChestBackGroundColor(maxLevel);
+        m_uiManager.SetChestPanelAnimNext();
+    }
+
+    private void OnChestItemSelect(ItemConfig config)
+    {
+        Debug.Log($"选择了 {config.itemName}");
+        m_player.additionalProp.Add(config.itemProp);
+        ExitChestState();
+    }
+
+    private void ExitChestState()
+    {
+        m_uiManager.CloseChestPanel();
+        m_isShopPart = true;
+        ShowShopEnter();
+    }
+
+    #endregion
+
+    #region Shop Part
+
+    private bool m_isShopPart;
+    private bool m_hasShopOpen;
+
+    public void ShowShopEnter()
+    {
+        m_player.CanMove = false;
+        var anchor = transform.Find("中心锚点");
+        var virCamera = cameraRoot.GetComponentInChildren<CinemachineVirtualCamera>();
+        virCamera.Follow = anchor;
+
+        var animator = GetComponent<Animator>();
+        animator.SetTrigger(ShopEnter);
+    }
+
+    public void OnShopEntered()
+    {
+        m_player.CanMove = true;
+        var shopAnimator = transform.Find("商店/飞机").GetComponent<Animator>();
+        shopAnimator.SetBool(Stop, true);
+        var virCamera = cameraRoot.GetComponentInChildren<CinemachineVirtualCamera>();
+        virCamera.Follow = player.transform;
+    }
+
+    public void OpenShopPanel()
+    {
+        if (!m_isShopPart)
+        {
+            Debug.LogError("尝试在非商店阶段打开商店?");
+            return;
+        }
+
+        if (m_hasShopOpen) return;
+        m_hasShopOpen = true;
+        m_player.CanMove = false;
+        
+        m_economicManager.OpenShopPanel(m_player);
+    }
+
+    public void CloseShopPanel()
+    {
+        if (!m_isShopPart)
+        {
+            Debug.LogError("尝试在非商店阶段关闭商店?");
+            return;
+        }
+        
+        m_economicManager.CloseShopPanel();
+        m_isShopPart = false;
+        m_hasShopOpen = false;
+        var animator = GetComponent<Animator>();
+        animator.SetTrigger(ShopExit);
+    }
+
+    public void OnShopExited()
+    {
+        m_player.CanMove = true;
+        InitGame(m_currentLevel + 1);
+    }
+
+    #endregion
+
+    #region System
+
+    private bool m_isPaused;
+
+    private void OnSystemUpdate()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SwitchGamePausedState();
+        }
+    }
+
+    public void SwitchGamePausedState()
+    {
+        if (m_isPaused)
+        {
+            m_isPaused = false;
+            Time.timeScale = 1;
+            m_uiManager.SetPausePanelState(false);
+        }
+        else
+        {
+            m_isPaused = true;
+            Time.timeScale = 0;
+            m_uiManager.SetPausePanelPropertyValue(player.GetComponent<PlayerController>());
+            m_uiManager.SetPausePanelState(true);
         }
     }
 
